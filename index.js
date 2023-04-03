@@ -2,7 +2,7 @@ import {ApolloServer, gql} from 'apollo-server';
 import axios from 'axios';
 
 const {data: users} = await axios.get('http://localhost:3000/user')
-const {data: establishments} = await axios.get('http://localhost:3000/user')
+//const {data: establishment} = await axios.get('http://localhost:3000/user')
 
 
 const typeDefs = gql`
@@ -33,4 +33,4 @@ const server = new ApolloServer({
     resolvers,
 })
 
-server.listen().then(({url}) => console.log(`Server ready at ${url}`))
+server.listen().then(({url})=> console.log(`server ready at ${url}`))
