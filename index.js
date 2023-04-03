@@ -3,8 +3,6 @@ import axios from 'axios';
 
 const {data: users} = await axios.get('http://localhost:3000/user')
 const {data: establishments} = await axios.get('http://localhost:3000/user')
-const {data: users} = await axios.get('http://localhost:3000/user')
-const {data: users} = await axios.get('http://localhost:3000/user')
 
 
 const typeDefs = gql`
