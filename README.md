@@ -8,3 +8,6 @@ This is an app that will save you time on your workday life.
 npm install
 ```
 
+```
+node index.js
+```
