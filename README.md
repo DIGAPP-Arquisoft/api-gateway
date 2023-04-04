@@ -9,5 +9,5 @@ npm install
 ```
 
 ```
-node index.js
+npx nodemon index.js
 ```

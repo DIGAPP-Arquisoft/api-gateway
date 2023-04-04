@@ -30,6 +30,7 @@ const typeDefs = gql`
     Description: String!
     Location: String!
     City: Int!
+    Reports: [Report]!
   }
 
   type Report {
@@ -47,6 +48,7 @@ const typeDefs = gql`
   type Query {
     # Users
     allUsers: [User]!
+    findUser(UserID: Int!): User
 
     # Establishments
     allEstablishtmets: [Establishment]!
@@ -63,22 +65,32 @@ const resolvers = {
 
     //Users
     allUsers: () => users,
+    findUser: (root, args) => {
+        const { UserID } = args
+        return users.find(usr => usr.UserID === UserID)
+    },
 
     //Establishments
     allEstablishtmets: () => establishments,
     findEstablishment: (root, args) => {
-        const {EstablishmentID} = args
+        const { EstablishmentID}  = args
         return establishments.find(est => est.EstablishmentID === EstablishmentID)
     },
-
 
     //Reports
     allReports: () => reports,
     findReports: (root, args) => {
-        const {EstablishmentID} = args
+        const { EstablishmentID } = args
         return reports.filter(rep => rep.EstablishmentID === EstablishmentID)
     }
   },
+
+  Establishment: {
+    Reports: (root) => {
+        const {EstablishmentID} = root
+        return reports.filter(rep => rep.EstablishmentID === EstablishmentID)
+    }
+  }
 };
 
 const server = new ApolloServer({
