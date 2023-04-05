@@ -6,6 +6,9 @@ const establishments = await axios.get(
     "http://localhost:3000/establishment"
     ).then(res=>{return res.data});
 const reports = await axios.get("http://localhost:3000/report").then(res=>{return res.data});
+const favorites = await axios.get("http://localhost:3000/favorites").then(res=>{return res.data}) 
+
+// cover_picture = models.CharField(max_length=300, null=True, blank=True)
 
 const typeDefs = gql`
   type User {
@@ -28,6 +31,7 @@ const typeDefs = gql`
     InternetQuality: Int!
     Rating: String!
     Description: String!
+    CoverPicture: String!
     Location: String!
     City: Int!
     Reports: [Report]!
@@ -45,6 +49,11 @@ const typeDefs = gql`
     Review: String!
    }
 
+  type Favorite {
+    EstablishmentID: Int!
+    UserID: Int!
+  }
+
   type Query {
     # Users
     allUsers: [User]!
@@ -57,6 +66,10 @@ const typeDefs = gql`
     # Reports
     allReports: [Report]!
     findReports(EstablishmentID: Int!): [Report]
+
+    # Favorites
+    favoritesByID(UserID: Int!): [Favorite]!
+    findFavorites(UserID: Int!): [Establishment]!
   }
 `;
 
@@ -82,7 +95,20 @@ const resolvers = {
     findReports: (root, args) => {
         const { EstablishmentID } = args
         return reports.filter(rep => rep.EstablishmentID === EstablishmentID)
+    },
+
+    
+    //Favorites
+    findFavorites: (root, args) => {
+      const {UserID} = args
+      const favsUrs = favorites.filter(fav => fav.UserID === UserID)
+      return favsUrs.map(element => {
+        const favtemp = establishments.find(est => est.EstablishmentID === element.EstablishmentID)
+        return favtemp
+      });
     }
+
+
   },
 
   Establishment: {
