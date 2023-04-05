@@ -73,7 +73,7 @@ const resolvers = {
     //Establishments
     allEstablishtmets: () => establishments,
     findEstablishment: (root, args) => {
-        const { EstablishmentID}  = args
+        const { EstablishmentID }  = args
         return establishments.find(est => est.EstablishmentID === EstablishmentID)
     },
 
@@ -92,6 +92,8 @@ const resolvers = {
     }
   }
 };
+
+
 
 const server = new ApolloServer({
   typeDefs,
