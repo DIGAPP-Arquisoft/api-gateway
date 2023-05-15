@@ -2,12 +2,12 @@
 
 This is an app that will save you time on your workday life.
 
+- When pulling always execute:
 
--  When pulling always execute:
 ```
 npm install
 ```
 
 ```
-npx nodemon index.js
+npm run dev
 ```

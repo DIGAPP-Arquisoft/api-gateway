@@ -1,26 +1,28 @@
 import { ApolloServer, gql } from "apollo-server";
 import axios from "axios";
+import amqp from "amqplib"
 
 
 // Funciones para realizar peticiones a los MS
+
 function getUsers() { 
   return axios.get("http://localhost:3000/user").then(res => res.data)
 }
 
 function getEstablishments(){
-  return axios.get("http://localhost:3000/establishment").then(res => res.data)
+  return axios.get("http://localhost:3002/establishment").then(res => res.data)
 }
 
 function getReports(){
-  return axios.get("http://localhost:3000/report").then(res => res.data)
+  return axios.get("http://localhost:3002/report").then(res => res.data)
 }
 
 function getFavorites(){
-  return axios.get("http://localhost:3000/favorites").then(res => res.data)
+  return axios.get("http://localhost:3001/favorites").then(res => res.data.result)
 }
 
 function getBookings(){
-  return axios.get("http://localhost:3000/booking").then(res => res.data)
+  return axios.get("http://localhost:8001/booking").then(res => res.data)
 }
 
 
@@ -31,12 +33,13 @@ const typeDefs = gql`
   # ------------------------------- #
 
   type User {
-    id: ID!
+    _id: ID!
     UserName: String!
-    Password: String!
+    Password: String
     Email: String!
-    UserPhoto: String!
-    City: Int!
+    Telephone: String
+    UserPhoto: String
+    City: Int
   }
 
   type Establishment {
@@ -72,8 +75,9 @@ const typeDefs = gql`
    }
 
   type Favorite {
-    EstablishmentID: Int!
-    UserID: Int!
+    EstablishmentID: ID!
+    UserID: ID!
+    City: String
   }
 
   type Statistic {
@@ -87,6 +91,19 @@ const typeDefs = gql`
     Date: String!
     Hour: String!
     NumberofPeople: Int!
+  }
+
+  type VerifiedToken{
+    Verified: Boolean!
+  }
+
+  type Token{
+    Token: String
+    Message: String
+  }
+
+  type id{
+    id: String
   }
 
   # ------------------------------- #
@@ -107,8 +124,16 @@ const typeDefs = gql`
     findReports(EstablishmentID: Int!): [Report]
 
     # Favorites
-    favoritesByID(id: Int!): [Favorite]!
-    findFavorites(id: Int!): [Establishment]!
+    favoritesByID(id: ID!): [Favorite]!
+    findFavorites(id: ID!): [Establishment]!
+
+    #Login
+    loginUser(Email: String!, Password: String!): Token!
+
+
+    # Verification with token
+    userByToken(token: String!): User
+
   }
   
   # -------------------------------- #
@@ -155,18 +180,28 @@ const typeDefs = gql`
 
 
     addFavorite(
-      EstablishmentID: Int!
-      UserID: Int!
-    ): Favorite
+      establishment: String!
+      user: String!
+      city: String!
+    ): id
 
     addBooking(
-      UserID: Int!
-      EstablishmentID: Int!
+      UserID: String!
+      EstablishmentID: String!
       Date: String!
       Hour: String!
       NumberofPeople: Int!
-    ): Bookings
+    ): id
     
+
+    signUp(
+      UserName: String!
+      Password: String!
+      Email: String!
+      Telephone: String
+      UserPhoto: String
+      City: Int
+    ): Token
   }
 `;
 
@@ -211,12 +246,35 @@ const resolvers = {
       const favorites = await getFavorites()
       const establishments = await getEstablishments()
       const {id} = args
-      const favsUrs = favorites.filter(fav => fav.UserID === id)
+      const favsUrs = favorites.filter(fav => fav.id === id)
       return favsUrs.map(element => {
-        const favtemp = establishments.find(est => est.EstablishmentID === element.EstablishmentID)
+        const favtemp = establishments.find(est => est.EstablishmentID === element.establishment)
         return favtemp
       });
     },
+
+    //Login
+    loginUser: async (root, args) => {
+      const {Email, Password} = args
+      const Token = await axios.post('http://localhost:3000/auth/signin', {
+        Email: Email,
+        Password: Password
+      }).then(res => res.data)
+      return Token
+    },
+
+    userByToken: async (root, args) => {
+        const { token } = args
+        const user = await axios.post('http://localhost:3000/auth/verifyToken', {}, {
+          headers: {
+            'Content-Type': 'text/json',
+            'x-access-token': token
+          }
+        }).then(res => res.data)
+        console.log( "Usuario que retorna ",user)
+        return user
+    },
+    
 
   },
 
@@ -240,17 +298,25 @@ const resolvers = {
       return report
     },
 
-    addFavorite: (root, args) => {
+    addFavorite: async (root, args) => {
       const favorite = {...args}
-      // To do Post Request from Favorite
-      return favorite
+      const res = await axios.post("http://localhost:3001/favorites", favorite).then(res => res.data)
+      return res
     },
 
     addBooking: (root, args) => {
       const booking = {...args}
-      // To do Post Request from Booking
-      return booking
+      main(booking);
+      return "123"
     },
+
+    signUp: async (root, args) => {
+      const user = {...args}
+      const Token = await axios.post("http://localhost:3000/auth/signup", user).then(res => res.data)
+      return Token
+    }
+
+
 
   },
 
@@ -286,10 +352,24 @@ const resolvers = {
         IQAverage: IQAv,
         SEAverage: SEAv
       }
-    }
-  }
-};
+    }   
+  },
 
+  VerifiedToken:{
+    Verified: async (args)=>{
+      const { token } = args
+        const user = await axios.post('http://localhost:3000/auth/verifyToken', {}, {
+          headers: {
+            'Content-Type': 'text/json',
+            'x-access-token': token
+          }
+        }).then(res => res.data)
+        console.log( "Usuario que retorna ",user)
+        if (user) return {Verified: true}
+        return {Verified: false}
+    }
+  } 
+};
 
 // Creating of Apollo-Server(Server from Graphql) 
 const server = new ApolloServer({
@@ -298,3 +378,25 @@ const server = new ApolloServer({
 });
 
 server.listen().then(({ url }) => console.log(`server ready at ${url}`));
+
+
+const main = async (message) => {
+  const connection = await amqp.connect('amqp://localhost');
+  const channel = await connection.createChannel();
+
+  const queueName = 'booking';
+
+  await channel.assertQueue(queueName, { durable: false });
+  
+  await channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
+
+  console.log("Message sent");
+  await channel.close();
+  await connection.close();
+}
+
+main().catch(console.error);
+
+
+
+
