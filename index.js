@@ -27,7 +27,7 @@ const typeDefs = gql`
 
   type Establishment {
     id: ID!
-    userID: Int!
+    userID: ID!
     establishmentName: String!
     opening: String!
     closing: String!
@@ -99,7 +99,7 @@ const typeDefs = gql`
     userByToken(token: String!): User
 
     # Establishments
-    allEstablishtmets: [Establishment]!
+    allEstablishments: [Establishment]!
     findEstablishment(EstablishmentID: String!): Establishment
 
     # Favorites
@@ -190,7 +190,7 @@ const resolvers = {
     },
 
     //Establishments
-    allEstablishtmets: async () => {
+    allEstablishments: async () => {
       const establishments = await axios.get(estUrl).then(res => res.data)
       return establishments
     },
@@ -236,7 +236,6 @@ const resolvers = {
 
     addReport: async (root, args) => {
       const report = {...args}
-      console.log(report)
       const response = await axios.post(repsUrl, report).then(res => res.data)
       return response
     },
