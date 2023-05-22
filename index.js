@@ -1,29 +1,12 @@
 import { ApolloServer, gql } from "apollo-server";
 import axios from "axios";
-import amqp from "amqplib"
 
-
-// Funciones para realizar peticiones a los MS
-
-function getUsers() { 
-  return axios.get("http://localhost:3000/user").then(res => res.data)
-}
-
-function getEstablishments(){
-  return axios.get("http://localhost:3002/establishment").then(res => res.data)
-}
-
-function getReports(){
-  return axios.get("http://localhost:3002/report").then(res => res.data)
-}
-
-function getFavorites(){
-  return axios.get("http://localhost:3001/favorites").then(res => res.data.result)
-}
-
-function getBookings(){
-  return axios.get("http://localhost:8001/booking").then(res => res.data)
-}
+// Url MS
+const userUrl = "http://34.139.194.232:3000"
+const favsUrl = "https://github-digapp-arquisoft-favorites-module-t2ngntgfya-ue.a.run.app/favorites"
+const estUrl = "http://establishments.ddns.net:8080/api/establishments"
+const repsUrl = "http://35.247.213.53:8081/api/reports"
+const bookingUrl = "http://104.197.127.77:5000/api/bookings"
 
 
 const typeDefs = gql`
@@ -33,51 +16,48 @@ const typeDefs = gql`
   # ------------------------------- #
 
   type User {
-    _id: ID!
-    UserName: String!
+    _id: ID
+    UserName: String
     Password: String
-    Email: String!
+    Email: String
     Telephone: String
     UserPhoto: String
     City: Int
   }
 
   type Establishment {
-    EstablishmentID: ID!
-    UserID: Int!
-    EstablishmentName: String!
-    Opening: String!
-    Closing: String!
-    Menu: String!
-    EstablishmentType: String!
-    Bookings: Int!
-    Capacity: Int!
-    InternetQuality: Int!
-    Rating: String!
-    Description: String!
-    CoverPicture: String!
-    Location: String!
-    City: Int!
+    id: ID!
+    userID: Int!
+    establishmentName: String!
+    opening: String!
+    closing: String!
+    establishmentType: String!
+    capacity: Int!
+    description: String!
+    menu: String!
+    coverPicture: String!
+    location: String!
+    city: Int!
     Reports: [Report]
     Statistics: Statistic
+    #Bookings: Int
   }
 
   type Report {
-    id: ID!
-    UserID: Int!
-    EstablishmentID: Int!
-    Date: String!
-    InternetQuality: String!
-    CapabilityID: String!
-    ScoreEstablishment: String!
-    ScoreReport: String!
-    Review: String!
+    userid: String
+    establishmentid: String
+    date: String
+    internetquality: Float
+    scoreestablishment: Float
+    scorereport: Float
+    review: String
    }
 
   type Favorite {
-    EstablishmentID: ID!
-    UserID: ID!
-    City: String
+    city: String
+    establishment: ID!
+    id: ID!
+    user: ID!
   }
 
   type Statistic {
@@ -85,12 +65,15 @@ const typeDefs = gql`
     SEAverage: Float!
   }
 
-  type Bookings {
-    UserID: Int!
-    EstablishmentID: Int!
-    Date: String!
-    Hour: String!
-    NumberofPeople: Int!
+  type Booking {
+    id: ID!
+    userId: String!
+    establishmentId: String!
+    date: String!
+    hour: String!
+    numberofPeople: Int!
+    startHour: String!
+    endHour: String!
   }
 
   type VerifiedToken{
@@ -102,8 +85,8 @@ const typeDefs = gql`
     Message: String
   }
 
-  type id{
-    id: String
+  type totalBooking{
+    total: Int!
   }
 
   # ------------------------------- #
@@ -112,27 +95,18 @@ const typeDefs = gql`
 
   type Query {
     # Users
-    allUsers: [User]!
-    findUser(id: Int!): User
+    loginUser(Email: String!, Password: String!): Token!
+    userByToken(token: String!): User
 
     # Establishments
     allEstablishtmets: [Establishment]!
-    findEstablishment(EstablishmentID: Int!): Establishment
-
-    # Reports
-    allReports: [Report]!
-    findReports(EstablishmentID: Int!): [Report]
+    findEstablishment(EstablishmentID: String!): Establishment
 
     # Favorites
-    favoritesByID(id: ID!): [Favorite]!
-    findFavorites(id: ID!): [Establishment]!
+    findFavorites(UserId: ID!): [Establishment]
 
-    #Login
-    loginUser(Email: String!, Password: String!): Token!
-
-
-    # Verification with token
-    userByToken(token: String!): User
+    # Booking 
+    findBooking(EstablishmentID: ID!, Date: String!, Block: Int!): totalBooking
 
   }
   
@@ -141,7 +115,6 @@ const typeDefs = gql`
   # -------------------------------- #
 
   type Mutation {
-
     addUser(
       UserName: String!
       Password: String!
@@ -149,174 +122,136 @@ const typeDefs = gql`
       Email: String!
       UserPhoto: String!
       City: Int!
-    ): User
+    ): Token!
 
     addEstablishment(
-      UserID: Int!
-      EstablishmentName: String!
-      Opening: String!
-      Closing: String!
-      Menu: String!
-      EstablishmentType: String!
-      Capacity: Int!
-      InternetQuality: Int!
-      Rating: String!
-      Description: String!
-      CoverPicture: String!
-      Location: String!
-      City: Int!
-    ): Establishment\
+      userID: String!
+      establishmentName: String!
+      opening: String!
+      closing: String!
+      establishmentType: String!
+      capacity: Int!
+      description: String!
+      menu: String!
+      coverPicture: String!
+      location: String!
+      city: Int!
+    ): Establishment
 
     addReport(
-      UserID: Int!
-      EstablishmentID: Int!
-      Date: String!
-      InternetQuality: Int!
-      CapabilityID: Int!
-      ScoreEstablishment: String!
-      ScoreReport: String!
-      Review: String!
+      userid: String!
+      establishmentid: String!
+      date: String!
+      internetquality: Float!
+      scoreestablishment: Float!
+      scorereport: Float!
+      review: String!
     ): Report
-
-
+    
     addFavorite(
-      establishment: String!
-      user: String!
+      establishment: ID!
+      user: ID!
       city: String!
-    ): id
+    ): Favorite
 
     addBooking(
-      UserID: String!
-      EstablishmentID: String!
-      Date: String!
-      Hour: String!
-      NumberofPeople: Int!
-    ): id
-    
-
-    signUp(
-      UserName: String!
-      Password: String!
-      Email: String!
-      Telephone: String
-      UserPhoto: String
-      City: Int
-    ): Token
+      userId: String!
+      establishmentId: String!
+      date: String!
+      blockId: Int!
+      numberofPeople: Int!
+    ): Booking
   }
 `;
 
 const resolvers = {
   Query: {
 
-    //Users
-    allUsers: async () => {
-      const users = await getUsers()
-      return users
-    },
-    findUser: async (root, args) => {
-        const { id } = args
-        const users = await getUsers()
-        return users.find(usr => usr.id === id)
-    },
-
-    //Establishments
-    allEstablishtmets: async () => {
-      const establishments = await getEstablishments()
-      return establishments
-    },
-    findEstablishment: async (root, args) => {
-      const establishments = await getEstablishments()
-      const {EstablishmentID}  = args
-      return establishments.find(est => est.EstablishmentID === EstablishmentID)
-    },
-
-    //Reports
-    allReports: async () => {
-      const reports = await getReports()
-      return reports
-    },
-    findReports: async (root, args) => {
-      const reports = await getReports()
-        const { EstablishmentID } = args
-        return reports.filter(rep => rep.EstablishmentID === EstablishmentID)
-    },
-
-    //Favorites
-    findFavorites: async (root, args) => {
-      const favorites = await getFavorites()
-      const establishments = await getEstablishments()
-      const {id} = args
-      const favsUrs = favorites.filter(fav => fav.id === id)
-      return favsUrs.map(element => {
-        const favtemp = establishments.find(est => est.EstablishmentID === element.establishment)
-        return favtemp
-      });
-    },
-
-    //Login
+    // UserLogin
     loginUser: async (root, args) => {
       const {Email, Password} = args
-      const Token = await axios.post('http://localhost:3000/auth/signin', {
+      const Token = await axios.post(userUrl + '/auth/signin', {
         Email: Email,
         Password: Password
       }).then(res => res.data)
       return Token
     },
 
+    // UserByToken
     userByToken: async (root, args) => {
-        const { token } = args
-        const user = await axios.post('http://localhost:3000/auth/verifyToken', {}, {
-          headers: {
-            'Content-Type': 'text/json',
-            'x-access-token': token
-          }
-        }).then(res => res.data)
-        console.log( "Usuario que retorna ",user)
-        return user
-    },
-    
-
-  },
-
-  Mutation: {
-
-    addUser: (root, args) => {
-      const user = {...args}
-      // To do Post Request from User
+      const { token } = args
+      const user = await axios.post( userUrl + '/auth/verifyToken', {}, {
+        headers: {
+          'Content-Type': 'text/json',
+          'x-access-token': token
+        }
+      }).then(res => res.data)
       return user
     },
 
-    addEstablishment: (root, args) => {
-      const establishment = {...args}
-      // To do Post Request from Establishmet
+    //Establishments
+    allEstablishtmets: async () => {
+      const establishments = await axios.get(estUrl).then(res => res.data)
+      return establishments
+    },
+
+    findEstablishment: async (root, args) => {
+      const {EstablishmentID}  = args
+      const establishment = axios.get(estUrl+"/"+EstablishmentID).then(res => res.data)
       return establishment
     },
 
-    addReport: (root, args) => {
+    //Favorites
+    findFavorites: async (root, args) => {
+      const { UserId } = args
+      const favorites = await axios.get(favsUrl+"?user="+UserId).then(res => res.data)
+      const establishments = await favorites.map(async (fav) => {
+          const data = await axios.get(estUrl+"/" + fav.establishment).then(res => res.data)
+          return data
+      })     
+      return establishments
+    },
+
+    // Bookings
+    findBooking: async (root, args) => {
+      const { EstablishmentID, Date, BlockId } = args
+      const response = await axios.get().then(res => res.data)
+    }
+  },
+
+  
+  Mutation: {
+
+    addUser: async (root, args) => {
+      const user = {...args}
+      const response = await axios.post(userUrl+"/auth/signup", user).then(res => res.data)
+      return response
+    },
+
+    addEstablishment: async (root, args) => {
+      const establishment = {...args}
+      const response = await axios.post(estUrl, establishment).then(res => res.data)
+      return response
+    },
+
+    addReport: async (root, args) => {
       const report = {...args}
-      // To do Post Request from Report
-      return report
+      console.log(report)
+      const response = await axios.post(repsUrl, report).then(res => res.data)
+      return response
     },
 
     addFavorite: async (root, args) => {
       const favorite = {...args}
-      const res = await axios.post("http://localhost:3001/favorites", favorite).then(res => res.data)
-      return res
+      const response = await axios.post(favsUrl, favorite).then(res => res.data.object)
+      return response
     },
 
-    addBooking: (root, args) => {
+    addBooking: async (root, args) => {
       const booking = {...args}
-      main(booking);
-      return "123"
+      const response = await axios.post(bookingUrl, booking).then(res => res.data)
+      return response
     },
-
-    signUp: async (root, args) => {
-      const user = {...args}
-      const Token = await axios.post("http://localhost:3000/auth/signup", user).then(res => res.data)
-      return Token
-    }
-
-
 
   },
 
@@ -324,51 +259,30 @@ const resolvers = {
 
     // Find and returns the Reports by EstablishmentID
     Reports: async (root) => {
-        const reps = await getReports()
-        const { EstablishmentID } = root
-        const reports = reps.filter(rep => rep.EstablishmentID === EstablishmentID)
-        if (reports.length === 0) return null
-        return reports
+      const { id } = root
+      const reports = await axios.get(repsUrl+"/e/" + id).then(res => res.data)
+      return reports
     },
 
-    // Find and retunrs the numbers of bookings by EstablishmentID
-    Bookings: async (root) => {
-      const {EstablishmentID} = root
-      const bkgs = await getBookings()
-      const bookings = bkgs.filter(b => b.EstablishmentID === EstablishmentID)
-      if (bookings.length === 0) return null
-      return bookings.reduce((a, b) => a + b.NumberofPeople, 0)
-    },
-
-    // Calculate and returns the aveage of InternetQality and EstablishmentStatus
+      // Calculate and returns the aveage of InternetQality and EstablishmentStatus
     Statistics: async (root) => {
-      const { EstablishmentID } = root
-      const reps = await getReports()
-      const reports = await reps.filter(rep => rep.EstablishmentID === EstablishmentID)
-      if (reports.length === 0) return null
-      const IQAv = reports.reduce((a, b) => a + b.InternetQuality, 0)/ reports.length;
-      const SEAv = reports.reduce((a, b) => a + b.ScoreEstablishment, 0)/ reports.length;
-      return{
-        IQAverage: IQAv,
-        SEAverage: SEAv
-      }
-    }   
+        const { id } = root
+        const response = await axios.get(repsUrl + "/a/" + id).then(res => res.data)
+        return{
+            IQAverage: response.iqaverage,
+            SEAverage: response.rtaverage
+        }
+    },
+
+    // // Find and retunrs the numbers of bookings by EstablishmentID
+    // Bookings: async (root) => {
+    //   const { id } = root
+    //   const result = axios.get(bookingUrl, id).then(res => res.data)
+    //   return result
+    // },
+  
   },
 
-  VerifiedToken:{
-    Verified: async (args)=>{
-      const { token } = args
-        const user = await axios.post('http://localhost:3000/auth/verifyToken', {}, {
-          headers: {
-            'Content-Type': 'text/json',
-            'x-access-token': token
-          }
-        }).then(res => res.data)
-        console.log( "Usuario que retorna ",user)
-        if (user) return {Verified: true}
-        return {Verified: false}
-    }
-  } 
 };
 
 // Creating of Apollo-Server(Server from Graphql) 
@@ -380,23 +294,20 @@ const server = new ApolloServer({
 server.listen().then(({ url }) => console.log(`server ready at ${url}`));
 
 
-const main = async (message) => {
-  const connection = await amqp.connect('amqp://localhost');
-  const channel = await connection.createChannel();
+// const main = async (message) => {
+//   const connection = await amqp.connect('amqp://localhost');
+//   const channel = await connection.createChannel();
 
-  const queueName = 'booking';
+//   const queueName = 'booking';
 
-  await channel.assertQueue(queueName, { durable: false });
+//   await channel.assertQueue(queueName, { durable: false });
   
-  await channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
+//   await channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
 
-  console.log("Message sent");
-  await channel.close();
-  await connection.close();
-}
+//   console.log("Message sent");
+//   await channel.close();
+//   await connection.close();
+// }
 
-main().catch(console.error);
-
-
-
+// main().catch(console.error);
 
