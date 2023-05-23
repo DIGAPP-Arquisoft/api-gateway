@@ -61,8 +61,8 @@ const typeDefs = gql`
   }
 
   type Statistic {
-    IQAverage: Float!
-    SEAverage: Float!
+    IQAverage: Float
+    SEAverage: Float
   }
 
   type Booking {
