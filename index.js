@@ -125,7 +125,7 @@ const typeDefs = gql`
     ): Token!
 
     addEstablishment(
-      userID: String!
+      userID: ID!
       establishmentName: String!
       opening: String!
       closing: String!
