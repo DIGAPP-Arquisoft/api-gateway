@@ -139,8 +139,8 @@ const typeDefs = gql`
     ): Establishment
 
     addReport(
-      userid: String!
-      establishmentid: String!
+      userid: ID!
+      establishmentid: ID!
       date: String!
       internetquality: Float!
       scoreestablishment: Float!
