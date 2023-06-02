@@ -106,7 +106,11 @@ const typeDefs = gql`
     findFavorites(UserId: ID!): [Establishment]
 
     # Booking
-    findBooking(EstablishmentID: ID!, Date: String!, Block: Int!): totalBooking
+    getTotalBooking(
+      EstablishmentID: ID!
+      Date: String!
+      BlockId: Int!
+    ): totalBooking
   }
 
   # -------------------------------- #
@@ -229,9 +233,18 @@ const resolvers = {
     },
 
     // Bookings
-    findBooking: async (root, args) => {
+    getTotalBooking: async (root, args) => {
       const { EstablishmentID, Date, BlockId } = args;
-      const response = await axios.get().then((res) => res.data);
+      const response = await axios
+        .get(`${bookingUrl}/establishments/${EstablishmentID}/count`, {
+          params: {
+            Date: Date,
+            BlockId: BlockId,
+          },
+        })
+        .then((res) => res.data)
+        .catch((error) => console.error(error));
+      return response;
     },
   },
 
