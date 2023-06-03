@@ -203,7 +203,7 @@ const resolvers = {
     },
 
     establishmentsSoap: async () => {
-      const establishments = await axios.get(estUrl+"/type/Coworking").then((res) => res.data);
+      const establishments = await axios.get(estUrl+"/type/Aula de Estudio").then((res) => res.data);
       return establishments;
     },
 
