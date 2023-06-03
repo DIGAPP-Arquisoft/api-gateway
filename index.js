@@ -99,6 +99,7 @@ const typeDefs = gql`
 
     # Establishments
     allEstablishments: [Establishment]!
+    establishmentsSoap: [Establishment]!
     findEstablishment(EstablishmentID: String!): Establishment
     establishmentsByType(establishmentType: String!): [Establishment]
 
@@ -198,6 +199,11 @@ const resolvers = {
     //Establishments
     allEstablishments: async () => {
       const establishments = await axios.get(estUrl).then((res) => res.data);
+      return establishments;
+    },
+
+    establishmentsSoap: async () => {
+      const establishments = await axios.get(estUrl+"/type/Coworking").then((res) => res.data);
       return establishments;
     },
 
