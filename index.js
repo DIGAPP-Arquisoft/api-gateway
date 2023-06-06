@@ -10,7 +10,7 @@ const favsUrl =
 const estUrl = "http://establishments.ddns.net:8080/api/establishments";
 const repsUrl = "http://35.247.213.53:8081/api/reports";
 const bookingUrl = "http://104.197.127.77:5000/api/bookings";
-const soapTwidditUrl = "http://34.138.201.211:8000/wsdl";
+const soapTwidditUrl = "http://34.138.201.211:80/wsdl";
 
 const typeDefs = gql`
   # ------------------------------- #
