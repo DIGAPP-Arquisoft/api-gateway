@@ -394,6 +394,10 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  cors: {
+    origin:'https://studio.apollographql.com',
+    credentials: true,
+  }
 });
 
 server.listen().then(({ url }) => console.log(`server ready at ${url}`));
