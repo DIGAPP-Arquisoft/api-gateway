@@ -1,6 +1,7 @@
 import { ApolloServer, gql } from "apollo-server-express";
 import axios from "axios";
-import express from "express"
+import { parseString } from "xml2js";
+import express, { response } from "express"
 import cors from "cors"
 
 // Url MS
@@ -10,6 +11,7 @@ const favsUrl =
 const estUrl = "http://establishments.ddns.net:8080/api/establishments";
 const repsUrl = "http://35.247.213.53:8081/api/reports";
 const bookingUrl = "http://104.197.127.77:5000/api/bookings";
+const soapTwidditUrl = "http://34.138.201.211:80/wsdl";
 
 const typeDefs = gql`
   # ------------------------------- #
@@ -90,6 +92,12 @@ const typeDefs = gql`
     total: Int!
   }
 
+  type Tweet {
+    id: ID!
+    text: String!
+    user: String!
+  }
+
   # ------------------------------- #
   # ---------- Consultas ---------- #
   # ------------------------------- #
@@ -114,6 +122,9 @@ const typeDefs = gql`
       Date: String!
       BlockId: Int!
     ): totalBooking
+
+    #Soap
+    getTweets(EstablismentName: String): [Tweet]
   }
 
   # -------------------------------- #
@@ -205,7 +216,9 @@ const resolvers = {
     },
 
     establishmentsSoap: async () => {
-      const establishments = await axios.get(estUrl+"/type/Aula de Estudio").then((res) => res.data);
+      const establishments = await axios
+        .get(estUrl + "/type/Aula de Estudio")
+        .then((res) => res.data);
       return establishments;
     },
 
@@ -253,6 +266,55 @@ const resolvers = {
         .then((res) => res.data)
         .catch((error) => console.error(error));
       return response;
+    },
+
+    //Soap
+    getTweets: async (root, args) => {
+      const { EstablismentName } = args;
+      const soapRequest = `
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+         <soapenv:Header/>
+         <soapenv:Body>
+            <tem:Request>
+               <tem:text>${EstablismentName}</tem:text>
+            </tem:Request>
+         </soapenv:Body>
+      </soapenv:Envelope>
+      `;
+      const headers = {
+        "Content-Type": "text/xml",
+      };
+      const soapResp = await axios
+        .post(soapTwidditUrl, soapRequest, { headers })
+        .then((response) => {
+          var tweets = [];
+          const resp = parseString(response.data, (err, result) => {
+            if (err) {
+              console.error(err);
+            } else {
+              const results =
+                result["soap:Envelope"]["soap:Body"][0]["Response"][0][
+                  "result"
+                ];
+              const jsonResult = JSON.stringify(results, null, 2);
+              results.forEach((element) => {
+                var id = element._id[0];
+                var text = element.text[0];
+                var user = element.user[0];
+                var tweet = { id, text, user };
+                tweets.push(tweet);
+              });
+              return tweets;
+              // Aquí puedes manejar la respuesta convertida a JSON
+            }
+          });
+          return tweets;
+        })
+        .catch((error) => {
+          console.error(error);
+          // Aquí puedes manejar cualquier error que ocurra durante la solicitud
+        });
+      return soapResp;
     },
   },
 
@@ -336,6 +398,10 @@ const app = express()
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  cors: {
+    origin:'https://studio.apollographql.com',
+    credentials: true,
+  }
 });
 
 await server.start();
