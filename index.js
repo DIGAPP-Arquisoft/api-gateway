@@ -1,5 +1,7 @@
-import { ApolloServer, gql } from "apollo-server";
+import { ApolloServer, gql } from "apollo-server-express";
 import axios from "axios";
+import express from "express"
+import cors from "cors"
 
 // Url MS
 const userUrl = "http://34.139.194.232:3000";
@@ -327,27 +329,19 @@ const resolvers = {
   },
 };
 
+
+const app = express()
+
 // Creating of Apollo-Server(Server from Graphql)
 const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
 
-server.listen().then(({ url }) => console.log(`server ready at ${url}`));
+await server.start();
 
-// const main = async (message) => {
-//   const connection = await amqp.connect('amqp://localhost');
-//   const channel = await connection.createChannel();
+app.use(cors());
+server.applyMiddleware({ app })
 
-//   const queueName = 'booking';
-
-//   await channel.assertQueue(queueName, { durable: false });
-
-//   await channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
-
-//   console.log("Message sent");
-//   await channel.close();
-//   await connection.close();
-// }
-
-// main().catch(console.error);
+await new Promise((resolve) => app.listen({ port: 4000 }, resolve));
+console.log(`🚀 Server ready at http://localhost:4000/graphql`);
