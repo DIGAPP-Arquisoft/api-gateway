@@ -2,12 +2,16 @@ import { ApolloServer, gql } from "apollo-server";
 import axios from "axios";
 
 // Url MS
-const userUrl = "http://34.139.194.232:3000";
+
+// New Urls in kubernetes cluster.
+const estUrl = "http://34.70.240.224:8080/api/establishments";
+const repsUrl = "http://34.67.226.97:8081/api/reports";
+const userUrl = "http://34.71.100.238:3000";
+
+// Not Updated Urls
+const bookingUrl = "http://104.197.127.77:5000/api/bookings";
 const favsUrl =
   "https://github-digapp-arquisoft-favorites-module-t2ngntgfya-ue.a.run.app/favorites";
-const estUrl = "http://establishments.ddns.net:8080/api/establishments";
-const repsUrl = "http://35.247.213.53:8081/api/reports";
-const bookingUrl = "http://104.197.127.77:5000/api/bookings";
 
 const typeDefs = gql`
   # ------------------------------- #
