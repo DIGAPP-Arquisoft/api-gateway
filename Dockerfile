@@ -8,4 +8,4 @@ EXPOSE 4001
 
 RUN npm install
 
-CMD npm run dev
+CMD npm start

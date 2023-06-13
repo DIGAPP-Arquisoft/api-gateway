@@ -1,5 +1,8 @@
-import { ApolloServer, gql } from "apollo-server";
+import { ApolloServer, gql } from "apollo-server-express";
 import axios from "axios";
+import { parseString } from "xml2js";
+import express, { response } from "express"
+import cors from "cors"
 
 // Url MS
 
@@ -12,6 +15,7 @@ const userUrl = "http://34.71.100.238:3000";
 const bookingUrl = "http://104.197.127.77:5000/api/bookings";
 const favsUrl =
   "https://github-digapp-arquisoft-favorites-module-t2ngntgfya-ue.a.run.app/favorites";
+const soapTwidditUrl = "http://34.138.201.211:80/wsdl";
 
 const typeDefs = gql`
   # ------------------------------- #
@@ -92,6 +96,12 @@ const typeDefs = gql`
     total: Int!
   }
 
+  type Tweet {
+    id: ID!
+    text: String!
+    user: String!
+  }
+
   # ------------------------------- #
   # ---------- Consultas ---------- #
   # ------------------------------- #
@@ -116,6 +126,9 @@ const typeDefs = gql`
       Date: String!
       BlockId: Int!
     ): totalBooking
+
+    #Soap
+    getTweets(EstablismentName: String): [Tweet]
   }
 
   # -------------------------------- #
@@ -207,7 +220,9 @@ const resolvers = {
     },
 
     establishmentsSoap: async () => {
-      const establishments = await axios.get(estUrl+"/type/Aula de Estudio").then((res) => res.data);
+      const establishments = await axios
+        .get(estUrl + "/type/Aula de Estudio")
+        .then((res) => res.data);
       return establishments;
     },
 
@@ -255,6 +270,55 @@ const resolvers = {
         .then((res) => res.data)
         .catch((error) => console.error(error));
       return response;
+    },
+
+    //Soap
+    getTweets: async (root, args) => {
+      const { EstablismentName } = args;
+      const soapRequest = `
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+         <soapenv:Header/>
+         <soapenv:Body>
+            <tem:Request>
+               <tem:text>${EstablismentName}</tem:text>
+            </tem:Request>
+         </soapenv:Body>
+      </soapenv:Envelope>
+      `;
+      const headers = {
+        "Content-Type": "text/xml",
+      };
+      const soapResp = await axios
+        .post(soapTwidditUrl, soapRequest, { headers })
+        .then((response) => {
+          var tweets = [];
+          const resp = parseString(response.data, (err, result) => {
+            if (err) {
+              console.error(err);
+            } else {
+              const results =
+                result["soap:Envelope"]["soap:Body"][0]["Response"][0][
+                  "result"
+                ];
+              const jsonResult = JSON.stringify(results, null, 2);
+              results.forEach((element) => {
+                var id = element._id[0];
+                var text = element.text[0];
+                var user = element.user[0];
+                var tweet = { id, text, user };
+                tweets.push(tweet);
+              });
+              return tweets;
+              // Aquí puedes manejar la respuesta convertida a JSON
+            }
+          });
+          return tweets;
+        })
+        .catch((error) => {
+          console.error(error);
+          // Aquí puedes manejar cualquier error que ocurra durante la solicitud
+        });
+      return soapResp;
     },
   },
 
@@ -331,27 +395,23 @@ const resolvers = {
   },
 };
 
+
+const app = express()
+
 // Creating of Apollo-Server(Server from Graphql)
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  cors: {
+    origin:'https://studio.apollographql.com',
+    credentials: true,
+  }
 });
 
-server.listen().then(({ url }) => console.log(`server ready at ${url}`));
+await server.start();
 
-// const main = async (message) => {
-//   const connection = await amqp.connect('amqp://localhost');
-//   const channel = await connection.createChannel();
+app.use(cors());
+server.applyMiddleware({ app })
 
-//   const queueName = 'booking';
-
-//   await channel.assertQueue(queueName, { durable: false });
-
-//   await channel.sendToQueue(queueName, Buffer.from(JSON.stringify(message)));
-
-//   console.log("Message sent");
-//   await channel.close();
-//   await connection.close();
-// }
-
-// main().catch(console.error);
+await new Promise((resolve) => app.listen({ port: 4000 }, resolve));
+console.log(`🚀 Server ready at http://localhost:4000/graphql`);
