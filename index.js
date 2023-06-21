@@ -6,11 +6,15 @@ import cors from "cors"
 
 // Url MS
 const userUrl = "http://10.0.41.140:3000";
+
+// New Urls in kubernetes cluster.
+const estUrl = "http://34.70.240.224:8080/api/establishments";
+const repsUrl = "http://34.67.226.97:8081/api/reports";
+
+// Not Updated Urls
+const bookingUrl = "http://104.197.127.77:5000/api/bookings";
 const favsUrl =
   "https://github-digapp-arquisoft-favorites-module-t2ngntgfya-ue.a.run.app/favorites";
-const estUrl = "http://establishments.ddns.net:8080/api/establishments";
-const repsUrl = "http://35.247.213.53:8081/api/reports";
-const bookingUrl = "http://104.197.127.77:5000/api/bookings";
 const soapTwidditUrl = "http://34.138.201.211:80/wsdl";
 
 const typeDefs = gql`

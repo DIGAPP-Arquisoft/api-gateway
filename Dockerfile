@@ -4,7 +4,7 @@ COPY . /opt/app
 
 WORKDIR /opt/app
 
-EXPOSE 4000
+EXPOSE 4001
 
 RUN npm install
 
