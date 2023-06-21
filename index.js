@@ -1,11 +1,11 @@
 import { ApolloServer, gql } from "apollo-server-express";
 import axios from "axios";
 import { parseString } from "xml2js";
-import express, { response } from "express"
+import express from "express"
 import cors from "cors"
 
 // Url MS
-const userUrl = "http://34.139.194.232:3000";
+const userUrl = "http://10.0.41.140:3000";
 const favsUrl =
   "https://github-digapp-arquisoft-favorites-module-t2ngntgfya-ue.a.run.app/favorites";
 const estUrl = "http://establishments.ddns.net:8080/api/establishments";
@@ -288,7 +288,7 @@ const resolvers = {
         .post(soapTwidditUrl, soapRequest, { headers })
         .then((response) => {
           var tweets = [];
-          const resp = parseString(response.data, (err, result) => {
+          parseString(response.data, (err, result) => {
             if (err) {
               console.error(err);
             } else {
@@ -296,7 +296,6 @@ const resolvers = {
                 result["soap:Envelope"]["soap:Body"][0]["Response"][0][
                   "result"
                 ];
-              const jsonResult = JSON.stringify(results, null, 2);
               results.forEach((element) => {
                 var id = element._id[0];
                 var text = element.text[0];
