@@ -4,14 +4,12 @@ import { parseString } from "xml2js";
 import express from "express"
 import cors from "cors"
 
-// Url MS
-const userUrl = "10.0.40.157:3000";
+// URL's in the cluster private
+const userUrl = "http://35.231.66.224:3000";
+const estUrl = "http://34.139.105.164:8080/api/establishments";
 
-// New Urls in kubernetes cluster.
-const estUrl = "http://34.70.240.224:8080/api/establishments";
-const repsUrl = "10.0.40.223:8081/api/reports";
-
-// Not Updated Urls
+// el resto
+const repsUrl = "http://34.74.121.247:8081/api/reports";
 const bookingUrl = "http://104.197.127.77:5000/api/bookings";
 const favsUrl =
   "https://github-digapp-arquisoft-favorites-module-t2ngntgfya-ue.a.run.app/favorites";
