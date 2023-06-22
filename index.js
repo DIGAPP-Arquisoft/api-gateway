@@ -5,7 +5,7 @@ import express from "express"
 import cors from "cors"
 
 // Url MS
-const userUrl = "http://34.138.111.139:3000";
+const userUrl = "10.0.40.157:3000";
 
 // New Urls in kubernetes cluster.
 const estUrl = "http://34.70.240.224:8080/api/establishments";
