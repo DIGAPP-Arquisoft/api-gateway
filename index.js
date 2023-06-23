@@ -7,7 +7,7 @@ import cors from "cors"
 // Url MS
 const userUrl = "http://34.36.195.203";
 // URL's in the cluster private
-const estUrl = "http://34.74.143.9:8080/api/establishments";
+const estUrl = "http://35.196.76.0:8080/api/establishments";
 
 // New Urls in kubernetes cluster.
 const repsUrl = "http://34.36.17.100/api/reports";
