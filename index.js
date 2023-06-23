@@ -10,7 +10,7 @@ const userUrl = "http://34.36.195.203";
 const estUrl = "http://35.196.76.0:8080/api/establishments";
 
 // New Urls in kubernetes cluster.
-const repsUrl = "http://34.36.17.100/api/reports";
+const repsUrl = "http://10.0.34.56/api/reports";
 
 // Not Updated Urls
 const bookingUrl = "http://104.197.127.77:5000/api/bookings";
