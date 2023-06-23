@@ -5,12 +5,12 @@ import express from "express"
 import cors from "cors"
 
 // Url MS
-const userUrl = "http://10.0.40.2:3000";
+const userUrl = "http://34.36.195.203";
 // URL's in the cluster private
-const estUrl = "http://10.0.36.205:8080/api/establishments";
+const estUrl = "http://34.74.143.9:8080/api/establishments";
 
 // New Urls in kubernetes cluster.
-const repsUrl = "http://10.0.37.247:8081/api/reports";
+const repsUrl = "http://34.36.17.100/api/reports";
 
 // Not Updated Urls
 const bookingUrl = "http://104.197.127.77:5000/api/bookings";
