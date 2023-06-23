@@ -5,7 +5,7 @@ import express from "express"
 import cors from "cors"
 
 // Url MS
-const userUrl = "10.0.40.2:3000";
+const userUrl = "http://10.0.40.2:3000";
 // URL's in the cluster private
 const estUrl = "http://34.139.105.164:8080/api/establishments";
 
